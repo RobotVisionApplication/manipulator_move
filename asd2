@@ -1,0 +1,90 @@
+import rclpy
+import DR_init
+import math
+from time import sleep
+
+
+
+# for single robot
+ROBOT_ID = "dsr01"
+ROBOT_MODEL = "m0609"
+VEL, ACC = 200, 200
+DR_init.__dsr__id = ROBOT_ID
+DR_init.__dsr__model = ROBOT_MODEL
+
+target1 = [-453.49, 34.45, 517.54, 177.89, 172.94, 153.06]
+target2 = [-553.75, 133.47, 431.07, 93.70, -141.11, 150.60]
+target3 = [-285.04, 9.90, 336.99, 174.10, 120.88, 171.39]
+target4 = [-367.01, -242.93, 258.30, 136.34, 104.34, -178.68]
+target5 = []
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = rclpy.create_node("visual_servoing2", namespace=ROBOT_ID)
+
+    DR_init.__dsr__node = node
+
+    try:
+        from DSR_ROBOT2 import (
+            movej,
+            movel,
+            get_current_posx
+        )
+
+        from DR_common2 import posx, posj
+
+    except ImportError as e:
+        print(f"Error importing DSR_ROBOT2 : {e}")
+        return
+
+    JReady = [0, 0, -90, 0, -90, 0]
+    movej(JReady, vel=VEL, acc=ACC)
+    sleep(0.5)
+
+    # target_xyz = [
+    #     object_xyz[0],
+    #     object_xyz[1],
+    #     object_xyz[2] + 200.0  # 위쪽
+    # ]
+
+    # target_rpy = [90.0, 180.0, 90.0]
+
+    # target_pose = target_xyz + target_rpy
+    # print("Current Pose:", get_current_posx()[0])
+    # print("Pose to move:", target_pose)
+
+    movel(posx(target1), vel=VEL, acc=ACC)
+    print("Current Pose:", get_current_posx()[0])
+    sleep(0.5)
+
+    movel(posx(target2), vel=VEL, acc=ACC)
+    sleep(0.5)
+    movel(posx(target1), vel=VEL, acc=ACC)
+    movel(posx(target3), vel=VEL, acc=ACC)
+    sleep(0.5)
+
+    print("Modified target1:", target1)
+    movel(posx(target1), vel=VEL, acc=ACC)
+    
+    target1[1] = -150
+    movel(posx(target1), vel=VEL, acc=ACC)
+    
+
+    movel(posx(target4), vel=VEL, acc=ACC)
+    sleep(0.5)
+    target4[2] = 400
+    movel(posx(target4), vel=VEL, acc=ACC)
+
+    target1[1] = 34.45 
+    movel(posx(target1), vel=VEL, acc=ACC)
+
+    movej(JReady, vel=VEL, acc=ACC)
+    sleep(0.5)
+# ==============================================
+
+    print("이동 완료")
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()
